@@ -13,7 +13,7 @@ exports.syncSales = async () => {
         return;
     }
 
-    syncSalesData(null, timestampRecord ? moment(timestampRecord?.lastFetched).unix() : moment().subtract(1, 'days').unix());
+    syncSalesData(null, timestampRecord ? moment(timestampRecord?.lastFetched).unix() : moment().subtract(1, 'hours').unix());
 }
 
 async function syncSalesData(seq, upToTime) {
@@ -55,18 +55,20 @@ async function syncSalesData(seq, upToTime) {
             }
         })))
 
-        if (!seq) {
+        if (!seq && tokenSales[0]) {
             await Timestamp.updateOne({ type: 'sold' },
                 { $set: { lastSaved: tokenSales[0].date } }
             );
         }
 
-        console.log("[syncSalesCron] Sold Data Saved from  : " + tokenSales[tokenSales.length - 1].date + " to " + tokenSales[0].date);
+        if (tokenSales.length > 0) {
+            console.log("[syncSalesCron] Sold Data Saved from  : " + tokenSales[tokenSales.length - 1].date + " to " + tokenSales[0].date);
+        }
+        
         if (continuation) {
             syncSalesData(continuation, upToTime);
         } else {
             const timestampRecord = await Timestamp.findOne({ type: 'sold' });
-            console.log("[syncSalesCron] Sold data fetched till", timestampRecord.lastSaved);
             if (timestampRecord.lastSaved) {
                 await Timestamp.updateOne({ type: 'sold' },
                     { $set: { type: 'sold', lastFetched: timestampRecord.lastSaved } },
