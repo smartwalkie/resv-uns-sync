@@ -18,6 +18,7 @@ module.exports = {
         toSync: {
             listing: process.env.SYNC_LISTING === '1',
             sales: process.env.SYNC_SALES === '1',
+            availability:process.env.SYNC_AVAILABLE === '1'
         },
         reservoir: {
             mainnet:{

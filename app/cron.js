@@ -9,6 +9,10 @@ exports.init = async () => {
         if (syncer.toSync.listing) {
             // syncListing();
         }
+
+        if (syncer.toSync.availability) {
+            // syncListing();
+        }
     });
     console.log("Cron Initilized.");
 }

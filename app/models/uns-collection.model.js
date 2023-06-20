@@ -3,6 +3,7 @@ module.exports = (mongoose) => {
     {
       name: String,
       token: { type: String, index: true },
+      namehash: String,
       slug: String,
       tld: String,
       registration: {
