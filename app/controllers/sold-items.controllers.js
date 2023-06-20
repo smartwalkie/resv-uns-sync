@@ -31,11 +31,11 @@ async function syncSalesData(seq, upToTime) {
                 if (ensname && ensname.name) {
                     sale.token.name = ensname.name
                 }
-            }
+            }   
 
             let findQuery = { $or: [{ "token": sale.token.tokenId }] }
             let clubData = await UNSCollections.find(findQuery);
-            
+
             tokenSales.push({
                 token: sale.token.tokenId,
                 name: sale.token.name,
