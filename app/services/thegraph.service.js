@@ -1,12 +1,12 @@
 const { gql, request } = require('graphql-request')
-
+const { difference, pluck } = require('underscore')
 const CHAIN_CONFIG = require("./../config/chain")
 const { syncer } = require("../config");
-const { convertTokenToHex } = require('../utils/token.utils');
+const { TokenToHex } = require('../utils/token.utils');
 
 const chainId = syncer.chains[syncer.CHAIN]
 
-async function getDomain(tokenId) {
+async function getSingleDomain(tokenId) {
 
     if (!chainId || !tokenId) {
         throw new Error(
@@ -19,24 +19,24 @@ async function getDomain(tokenId) {
         throw new Error(`Unsupported chain ${chainId}`);
     }
 
-    const id = convertTokenToHex(tokenId)
+    const id = TokenToHex(tokenId)
     const data = await client.request(
         gql`
-        query GetDomain($id: ID!) {
+        query getSingleDomain($id: ID!) {
             domain(id: $id) {
-            id
-            name
-            registry
-            owner {
                 id
-            }
-            resolver {
-                address
-                records {
-                key
-                value
+                name
+                registry
+                owner {
+                    id
                 }
-            }
+                resolver {
+                    address
+                    records {
+                        key
+                        value
+                    }
+                }
             }
         }
         `,
@@ -58,6 +58,87 @@ async function getDomain(tokenId) {
     };
 }
 
+async function getDomains(nameHashes) {
+
+    if (!chainId || !nameHashes?.length) {
+        throw new Error(
+            `Invalid arguments [chainId: ${chainId}, tokenId Length: ${nameHashes.length}]`
+        );
+    }
+
+    const data = await _getDomainNamesMap(
+        chainId,
+        nameHashes
+    );
+
+    const unknownTokens = difference(nameHashes, pluck(data, 'id'))
+
+    let parsedUnknownDomains = []
+    if (unknownTokens.length) {
+        parsedUnknownDomains = await _getDomainNamesMap(
+            CHAIN_CONFIG[chainId].linkedChainId,
+            unknownTokens
+        )
+    }
+
+    return [...data, ...parsedUnknownDomains];
+}
+
+
+const _getDomainNamesMap = async (chainId, tokenIds) => {
+    const client = CHAIN_CONFIG[chainId].client
+    if (!client) {
+        throw new Error(`Unsupported chain ${chainId}`)
+    }
+
+    const data = await client.request(gql`
+        query filteredDomains($ids: [ID!]!) {
+        domains(where: { id_in: $ids }) {
+            id
+            name
+            registry
+            createdAt
+            owner {
+                id
+            }
+            resolver {
+                address
+                records {
+                    key
+                    value
+                }
+            }
+        }
+        }
+        `, {
+        ids: tokenIds
+    })
+
+    const { domains } = data
+    if (!domains) {
+        return []
+    }
+
+    return _parseDomains(domains)
+}
+const _parseDomains = (domains) => {
+    if (!domains || !Array(domains).length) {
+        return []
+    }
+
+    return Object.values(domains).map((d) => {
+        return {
+            id: d.id,
+            name: d.name,
+            owner: d.owner.id,
+            registry: d.registry,
+            createdAt:d.createdAt,
+            resolver: (d.resolver || {}).address,
+            records: _parseRecords(d.resolver)
+        }
+    })
+}
+
 const _parseRecords = (resolver) => {
     if (!resolver || !resolver.records) {
         return {};
@@ -70,5 +151,6 @@ const _parseRecords = (resolver) => {
 };
 
 module.exports = {
-    getDomain
+    getSingleDomain,
+    getDomains
 }

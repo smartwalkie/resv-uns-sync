@@ -1,8 +1,7 @@
 const moment = require('moment');
-const { server } = require('../config')
 const { SoldItems, UNSCollections, Timestamp } = require("../models");
 const { getSoldTokens } = require("../services/reservoir.service");
-const { getDomain } = require("../services/thegraph.service");
+const { getSingleDomain } = require("../services/thegraph.service");
 let IS_SOLD_JOB_RUNNING = false;
 
 exports.syncSales = async () => {
@@ -13,7 +12,7 @@ exports.syncSales = async () => {
         return;
     }
 
-    syncSalesData(null, timestampRecord ? moment(timestampRecord?.lastFetched).unix() : moment().subtract(1, 'days').unix());
+    syncSalesData(null, timestampRecord ? moment(timestampRecord?.lastFetched).unix() : moment().subtract(1, 'hours').unix());
 }
 
 async function syncSalesData(seq, upToTime) {
@@ -27,12 +26,16 @@ async function syncSalesData(seq, upToTime) {
         for (let i = 0; i < sales.length; i++) {
             const sale = sales[i];
             if (!sale.token.name) {
-                let ensname = await getDomain(sale.token.tokenId);
+                let ensname = await getSingleDomain(sale.token.tokenId);
 
                 if (ensname && ensname.name) {
                     sale.token.name = ensname.name
                 }
             }
+
+            let findQuery = { $or: [{ "token": sale.token.tokenId }] }
+            let clubData = await UNSCollections.find(findQuery);
+            
             tokenSales.push({
                 token: sale.token.tokenId,
                 name: sale.token.name,
@@ -44,7 +47,7 @@ async function syncSalesData(seq, upToTime) {
                 orderKind: sale.orderKind,
                 source: sale.orderSource,
                 date: new Date(sale.timestamp * 1000).toISOString(),
-                // club: clubData.map((c) => c.slug),
+                club: clubData.map((c) => c.slug),
             });
         }
         await SoldItems.bulkWrite(tokenSales.map(token => ({
@@ -55,18 +58,20 @@ async function syncSalesData(seq, upToTime) {
             }
         })))
 
-        if (!seq) {
+        if (!seq && tokenSales[0]) {
             await Timestamp.updateOne({ type: 'sold' },
                 { $set: { lastSaved: tokenSales[0].date } }
             );
         }
 
-        console.log("[syncSalesCron] Sold Data Saved from  : " + tokenSales[tokenSales.length - 1].date + " to " + tokenSales[0].date);
+        if (tokenSales.length > 0) {
+            console.log("[syncSalesCron] Sold Data Saved from  : " + tokenSales[tokenSales.length - 1].date + " to " + tokenSales[0].date);
+        }
+
         if (continuation) {
             syncSalesData(continuation, upToTime);
         } else {
             const timestampRecord = await Timestamp.findOne({ type: 'sold' });
-            console.log("[syncSalesCron] Sold data fetched till", timestampRecord.lastSaved);
             if (timestampRecord.lastSaved) {
                 await Timestamp.updateOne({ type: 'sold' },
                     { $set: { type: 'sold', lastFetched: timestampRecord.lastSaved } },
