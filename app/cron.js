@@ -3,9 +3,6 @@ const cron = require("node-cron");
 const { syncSales } = require('./controllers/sold-items.controllers');
 const { syncAvailability } = require('./controllers/availability.controller');
 
-let IS_AVAILABILITY_CRON_RUNNING = false;
-
-
 exports.init = async () => {
     cron.schedule("*/1 * * * *", async () => {
         if (syncer.toSync.sales) {

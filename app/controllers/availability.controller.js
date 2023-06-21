@@ -67,8 +67,6 @@ async function syncAvailabilityData(limit = syncer.AVAILABILITY_CRON_LIMIT) {
         }
     });
 
-    console.log(recordsToUpdate);
-
     let updateResp = await UNSCollections.bulkWrite(
         recordsToUpdate.map((doc) => ({
             updateOne: {
