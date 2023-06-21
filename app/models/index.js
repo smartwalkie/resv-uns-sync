@@ -7,6 +7,7 @@ db.ClubInfo = require("./club-info.model.js")(mongoose);
 db.UNSCollections = require("./uns-collection.model.js")(mongoose);
 db.SoldItems = require("./sold-items.model.js")(mongoose);
 db.Timestamp = require("./timestamp.model.js")(mongoose);
+db.CronFetchIndex = require("./cron-fetch-index.model.js")(mongoose);
 db.connectDatabase = async (onConnect) => {
     try {
         const cons = await mongoose.connect(process.env.DATABASE, {
