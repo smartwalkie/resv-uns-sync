@@ -15,15 +15,18 @@ module.exports = {
         RESERVOIR_API_KEYS: process.env.RESERVOIR_API_KEYS ? process.env.RESERVOIR_API_KEYS.split(',') : 'demo-api-key',
         CHAIN: process.env.CHAIN,
         CONTRACTS: process.env.CONTRACTS,
+        AVAILABILITY_CRON_LIMIT: process.env.AVAILABILITY_CRON_LIMIT
+            ? +process.env.AVAILABILITY_CRON_LIMIT
+            : 1000,
         toSync: {
             listing: process.env.SYNC_LISTING === '1',
             sales: process.env.SYNC_SALES === '1',
-            availability:process.env.SYNC_AVAILABLE === '1'
+            availability: process.env.SYNC_AVAILABLE === '1'
         },
         reservoir: {
-            mainnet:{
-                url:'https://api.reservoir.tools', // verified
-                contract:'0xd1e5b0ff1287aa9f9a268759062e4ab08b9dacbe' // verified
+            mainnet: {
+                url: 'https://api.reservoir.tools', // verified
+                contract: '0xd1e5b0ff1287aa9f9a268759062e4ab08b9dacbe' // verified
             },
             polygon: {
                 url: 'https://api-polygon.reservoir.tools',  // verified
@@ -33,11 +36,11 @@ module.exports = {
                 url: 'https://api.reservoir.tools',
                 contract: '0x801452cfac27e79a11c6b185986fde09e8637589'
             },
-            mumbai:{
-                url:'',
-                contract:'0x2a93c52e7b6e7054870758e15a1446e769edfb93'
+            mumbai: {
+                url: '',
+                contract: '0x2a93c52e7b6e7054870758e15a1446e769edfb93'
             }
-            
+
 
         },
         chains: {
