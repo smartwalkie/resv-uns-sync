@@ -16,7 +16,7 @@ async function postTweet(tweet) {
     })
         .catch(err => {
             console.log("[postTweet] Error Tweet: ");
-            console.log(err.dataq);
+            console.log(err.data);
         });
 }
 
