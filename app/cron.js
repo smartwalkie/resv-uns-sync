@@ -2,6 +2,7 @@ const { syncer } = require('./config');
 const cron = require("node-cron");
 const { syncSales } = require('./controllers/sold-items.controllers');
 const { syncAvailability } = require('./controllers/availability.controller');
+const { syncListing } = require('./controllers/listing.controllers');
 
 exports.init = async () => {
     cron.schedule("*/1 * * * *", async () => {
