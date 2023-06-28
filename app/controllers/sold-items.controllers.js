@@ -2,6 +2,7 @@ const moment = require('moment');
 const { SoldItems, UNSCollections, Timestamp } = require("../models");
 const { getSoldTokens } = require("../services/reservoir.service");
 const { getSingleDomain } = require("../services/thegraph.service");
+const { postTweet } = require('../services/twitter.services')
 let IS_SOLD_JOB_RUNNING = false;
 
 exports.syncSales = async () => {
@@ -31,7 +32,22 @@ async function syncSalesData(seq, upToTime) {
                 if (ensname && ensname.name) {
                     sale.token.name = ensname.name
                 }
-            }   
+            }
+
+            if (sale?.token?.name && sale?.price?.amount?.usd && sale?.from && sale?.to && sale?.orderSource) {
+                if (sale?.price?.amount?.usd >= 50) {
+                    const tweetString = `${sale.token.name} sold for ~$${sale.price.amount.usd}. From ${sale.from} to ${sale.to} via ${sale.orderSource}`
+                    postTweet(tweetString);
+                }
+            } else {
+                console.log(`[postTweet] Failed to Tweet
+                    sale.token.name: ${sale?.token?.name}
+                    sale.price.amount.usd: ${sale?.price?.amount?.usd}
+                    sale.from: ${sale?.from}
+                    sale.to: ${sale?.to}
+                    sale.orderSource: ${sale?.orderSource}
+                `);
+            }
 
             let findQuery = { $or: [{ "token": sale.token.tokenId }] }
             let clubData = await UNSCollections.find(findQuery);
