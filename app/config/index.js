@@ -33,15 +33,13 @@ module.exports = {
                 contract: '0xa9a6a3626993d487d2dbda3173cf58ca1a9d9e9f' // verified
             },
             goerli: {
-                url: 'https://api.reservoir.tools',
+                url: 'https://api-goerli.reservoir.tools',
                 contract: '0x801452cfac27e79a11c6b185986fde09e8637589'
             },
             mumbai: {
-                url: '',
+                url: 'https://api-mumbai.reservoir.tools',
                 contract: '0x2a93c52e7b6e7054870758e15a1446e769edfb93'
             }
-
-
         },
         chains: {
             mainnet: 1,
@@ -49,5 +47,12 @@ module.exports = {
             polygon: 137,
             mumbai: 80001,
         }
+    },
+    twitter: {
+        IS_SALES_TWEET_BOT_ENABLED: process.env.ENABLE_SALES_TWEET_BOT === '1',
+        TWITTER_API_KEY: process.env.TWITTER_API_KEY,
+        TWITTER_APP_KEY_SECRET: process.env.TWITTER_APP_KEY_SECRET,
+        TWITTER_ACCESS_TOKEN: process.env.TWITTER_ACCESS_TOKEN,
+        TWITTER_ACCESS_TOKEN_SECRET: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     }
 }
