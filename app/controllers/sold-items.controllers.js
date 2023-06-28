@@ -1,4 +1,5 @@
 const moment = require('moment');
+const { twitter } = require('../config');
 const { SoldItems, UNSCollections, Timestamp } = require("../models");
 const { getSoldTokens } = require("../services/reservoir.service");
 const { getSingleDomain } = require("../services/thegraph.service");
@@ -34,7 +35,7 @@ async function syncSalesData(seq, upToTime) {
                 }
             }
 
-            if (sale?.token?.name && sale?.price?.amount?.usd && sale?.from && sale?.to && sale?.orderSource) {
+            if (twitter?.IS_SALES_TWEET_BOT_ENABLED && sale?.token?.name && sale?.price?.amount?.usd && sale?.from && sale?.to && sale?.orderSource) {
                 if (sale?.price?.amount?.usd >= 50) {
                     const tweetString = `${sale.token.name} sold for ~$${sale.price.amount.usd}. From ${sale.from} to ${sale.to} via ${sale.orderSource}`
                     postTweet(tweetString);
